@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29613.14
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AGV", "AGV\AGV.csproj", "{1F57EC6E-EF4D-4016-8E61-D73E03A71C92}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AGVTests", "AGVTests\AGVTests.csproj", "{5E32E138-0062-4706-A153-D2475DE3AC22}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{1F57EC6E-EF4D-4016-8E61-D73E03A71C92}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1F57EC6E-EF4D-4016-8E61-D73E03A71C92}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1F57EC6E-EF4D-4016-8E61-D73E03A71C92}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1F57EC6E-EF4D-4016-8E61-D73E03A71C92}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5E32E138-0062-4706-A153-D2475DE3AC22}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5E32E138-0062-4706-A153-D2475DE3AC22}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5E32E138-0062-4706-A153-D2475DE3AC22}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5E32E138-0062-4706-A153-D2475DE3AC22}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {981FEABD-715F-4369-A7E7-281D610542A6}
+	EndGlobalSection
+EndGlobal
