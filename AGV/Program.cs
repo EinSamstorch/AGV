@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace AGV
 {
-    struct Point
+    public struct Point
     {
         public string xCoordinate;
         public string yCoordinate;
@@ -21,17 +21,22 @@ namespace AGV
         private const double OFFSET = 0.05;
         private const int COUNT = 20;
         private const double PI = 3.14159;
-        static double[] x = new double[48];
-        static double[] y = new double[48];
+        private static double[] x = new double[48];
+        private static double[] y = new double[48];
+        public List<Point> points = new List<Point>();
         private const string filePath = @"D:\Documents\Visual Studio 2019\AGV\AGV\Source\coordinate.txt";
 
-        public static void Main(double offset)
-        {
-            
-            //List<Point> points = new List<Point>();
+        public static void Main(string[] args)
+        {           
             int[] points1 = { 4, 5, 6, 2 ,3};
+            ReadPathFile(filePath);
+            foreach(int i in points1)
+            {
+                Console.Write("{0},{1}", x[i], y[i]);
+                Console.WriteLine();
+            }
 
-            GeneratePathFile(points1);
+            //GeneratePathFile(points1);
             Console.ReadKey();
 
         }
