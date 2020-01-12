@@ -5,129 +5,120 @@ using System.Linq;
 
 namespace AGV
 {
+    //定义点的结构 
     public struct Point
     {
-        public string xCoordinate;
-        public string yCoordinate;
-        public string theta;//0 <= θ <= 3.141592
-        public string xSpeed;
-        public string ySpeed;//该列全零
-        public string label;//用来区分多个点之间的路径段，拐一次弯加1
+        public double xCoordinate;
+        public double yCoordinate;
+        public double theta;//0 <= θ <= 3.141592
+        public double xSpeed;//0.1 <= v <= 0.4 , ▲v = 0.1  转弯时速度为0。
+        public double ySpeed;//该列全零
+        public int label;//用来区分多个点之间的路径段，拐一次弯加1
     }
 
     public class Program
     {
-        //插补间距5cm
         private const double OFFSET = 0.05;
-        private const int COUNT = 20;
         private const double PI = 3.14159;
-        private static double[] x = new double[48];
-        private static double[] y = new double[48];
-        public List<Point> points = new List<Point>();
+        private const int POINTNUMBER = 48;
+        public static List<Point> initialPoints = new List<Point>();
         private const string filePath = @"D:\Documents\Visual Studio 2019\AGV\AGV\Source\coordinate.txt";
 
         public static void Main(string[] args)
         {           
-            int[] points1 = { 4, 5, 6, 2 ,3};
-            ReadPathFile(filePath);
-            foreach(int i in points1)
-            {
-                Console.Write("{0},{1}", x[i], y[i]);
-                Console.WriteLine();
-            }
+            int[] pointsFromPan = { 4, 5, 6, 2 ,3};
+            List<Point> simplifiedPoints = new List<Point>();//简化之后要走的点 
 
-            //GeneratePathFile(points1);
+            //GeneratePathFile(pointsFromPan);
             Console.ReadKey();
 
         }
 
-        public static bool GeneratePathFile(int[] points)
+        public static bool GeneratePathFile(int[] pointsFromPan)
         {
-            return GeneratePathFile("path5.txt", points);
+            return GeneratePathFile("path5.txt", pointsFromPan);
         }
 
-        public static bool GeneratePathFile(string fileName, int[] points)
+        public static bool GeneratePathFile(string fileName, int[] pointsFromPan)
         {
-            //读取数据失败则返回
+            List<Point> simplifiedPoints = new List<Point>();//简化之后要走的点        
+            List<Point> generatePoints = new List<Point>();//最终生成的点
+
+            //如果读取文件失败则返回false
             if (!ReadPathFile(filePath))
             {
                 return false;
             }
 
-            //根据点的数量确定二维数组长度
-            int size = (points.Length - 1) * 20 + 1;
-            Point[] points1 = new Point[(points.Length - 1) * 20 + 1];
-            string[,] generateCoordinates = new string[(points.Length - 1) * 20 + 1, 6];
-            double flag1 = 0;
-            double vFlag = 1, oFlag = 1;
+            ModifyThePositionOfStartingPoint(pointsFromPan);
 
-            for (int i = 0; i < points.Length - 1; i++)
+            SimplifyPoints(pointsFromPan, simplifiedPoints);
+
+            for (int i = 0; i < simplifiedPoints.Count - 1; i++)
             {
-                
-                double x1 = x[points[i]];
-                double y1 = y[points[i]];
-                double x2 = x[points[i + 1]];
-                double y2 = y[points[i + 1]];
+                double x1 = simplifiedPoints[i].xCoordinate;
+                double y1 = simplifiedPoints[i].yCoordinate;
+                double x2 = simplifiedPoints[i + 1].yCoordinate;
+                double y2 = simplifiedPoints[i + 1].yCoordinate;
                 double k = (y2 - y1) / (x2 - x1);
                 double b = y1 - k * x1;
                 double radian = Math.Atan(k);
-                //小车在第一个点都是倒车出来的
-                if (i == 0)
-                    vFlag = -1;
-                else
-                    vFlag = 1;
-                if (y2 > y1)
-                    oFlag = 1;
-                else
-                    oFlag = -1;
-                if (radian < 0)
+
+                if ((x2-x1) == 0)
                 {
-                    radian += 2 * PI;
-                }
-                for (int j = 0; j < COUNT; j++)
-                {
-                    //x1和x2在一列
-                    if (x1 == x2)
-                    { 
-                        generateCoordinates[i * COUNT + j, 0] = x1.ToString("0.000000");//x坐标值不变
-                        generateCoordinates[i * COUNT + j, 1] = (y1 + j * oFlag * (OFFSET)).ToString("0.000000");
-                        generateCoordinates[i * COUNT + j, 2] = radian.ToString("0.000000");//弧度制 = arctan（k)
-                        generateCoordinates[i * COUNT + j, 3] = (0.2 * vFlag).ToString("0.000000");//x方向速度
-                        generateCoordinates[i * COUNT + j, 4] = 0.ToString("0.000000");//y方向速度
-                        generateCoordinates[i * COUNT + j, 5] = flag1.ToString("0.000000");//转向标志位
-                    }
-                    else
-                    //x1和x2不在同一列
+                    for (int j = 0; j < (y2-y1)/OFFSET; j++)
                     {
-                        generateCoordinates[i * COUNT + j, 0] = ((x1 + j * OFFSET).ToString("0.000000"));//x坐标每次加偏移值
-                        generateCoordinates[i * COUNT + j, 1] = (k * double.Parse(generateCoordinates[i * COUNT + j, 0]) + b).ToString("0.000000");//y=kx+b
-                        generateCoordinates[i * COUNT + j, 2] = radian.ToString("0.000000");//弧度制 = arctan（k)
-                        generateCoordinates[i * COUNT + j, 3] = (0.2 * vFlag).ToString("0.000000");
-                        generateCoordinates[i * COUNT + j, 4] = 0.ToString("0.000000");
-                        generateCoordinates[i * COUNT + j, 5] = flag1.ToString("0.000000");
+                        Point point = new Point();
 
                     }
                 }
-                //给最后一个点赋值
-                generateCoordinates[(points.Length - 1) * COUNT, 0] = x2.ToString("0.000000");
-                generateCoordinates[(points.Length - 1) * COUNT, 1] = y2.ToString("0.000000");
-                generateCoordinates[(points.Length - 1) * COUNT, 2] = radian.ToString("0.000000");//弧度制 = arctan（k)
-                generateCoordinates[(points.Length - 1) * COUNT, 3] = 0.2.ToString("0.000000");
-                generateCoordinates[(points.Length - 1) * COUNT, 4] = 0.ToString("0.000000");
-                generateCoordinates[(points.Length - 1) * COUNT, 5] = flag1.ToString("0.000000");
-                flag1++;
-
             }
 
-            for (int i = 0; i < generateCoordinates.GetLength(0); i++)
-            {
-                Console.WriteLine("x:{0}\t y:{1}\t radian:{2}\t vx:{3}\t vy:{4}\t flag:{5}",
-                    generateCoordinates[i, 0], generateCoordinates[i, 1], generateCoordinates[i, 2], generateCoordinates[i, 3], generateCoordinates[i, 4], generateCoordinates[i, 5]);
-            }
-
-            return GeneratePathFile(fileName, generateCoordinates);
+            return true;
         }
 
+        /// <summary>
+        /// 将同一条直线上的几个点合并成两个点，方便后面进行加减速控制。
+        /// </summary>
+        /// <param name="pointsFromPan"></param>
+        /// <param name="simplifiedPoints"></param>
+        public static void SimplifyPoints(int[] pointsFromPan, List<Point> simplifiedPoints)
+        {
+            int deta1 = 0; //用于判断前后两个点序号的差值
+
+            for (int i = 0; i < pointsFromPan.Length - 1; i++)
+            {
+                int deta2 = pointsFromPan[i + 1] - pointsFromPan[i];
+
+                if (deta2 != deta1)
+                {
+                    simplifiedPoints.Add(initialPoints[pointsFromPan[i]]);
+                    deta1 = deta2;
+                }
+            }
+            simplifiedPoints.Add(initialPoints[pointsFromPan[pointsFromPan.Length - 1]]);
+        }
+
+
+        private static void ModifyThePositionOfStartingPoint(int[] points1)
+        {
+            //如果起点在最下面一行，则起点的y坐标减去0.3米
+            if (points1[0] / 4 == 0)
+            {
+                Point newPoint = new Point();
+                newPoint.xCoordinate = initialPoints[points1[0]].xCoordinate;
+                newPoint.yCoordinate = initialPoints[points1[0]].yCoordinate - 0.3;
+                initialPoints[points1[0]] = newPoint;
+            }
+            //如果起点在最上面一行，则起点的y坐标加上0.3米
+            if (points1[0] / 4 == 3)
+            {
+                Point newPoint = new Point();
+                newPoint.xCoordinate = initialPoints[points1[0]].xCoordinate;
+                newPoint.yCoordinate = initialPoints[points1[0]].yCoordinate + 0.3;
+                initialPoints[points1[0]] = newPoint;
+            }
+        }
 
         public static bool ReadPathFile(string filePath)
         {
@@ -135,10 +126,12 @@ namespace AGV
             try
             {
                 data = File.ReadAllLines(filePath).Select(x => x.Split(' ')).ToArray();
+                Point[] tempPoints = new Point[POINTNUMBER];
                 for (int i = 0; i < data.Length; i++)
                 {
-                    x[i] = double.Parse(data[i][0]);
-                    y[i] = double.Parse(data[i][1]);
+                    tempPoints[i].xCoordinate = double.Parse(data[i][0]);
+                    tempPoints[i].yCoordinate = double.Parse(data[i][1]);
+                    initialPoints.Add(tempPoints[i]);
                 }    
             }
             catch (Exception e)
