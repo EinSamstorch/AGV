@@ -24,8 +24,20 @@ namespace AGV
         private const string filePath = @"D:\Documents\Visual Studio 2019\AGV\AGV\Source\coordinate.txt";
 
         public static void Main(string[] args)
-        {           
-            int[] pointsFromPan = {0, 1, 5, 9, 13, 17};
+        {
+            //int[] pointsFromPan = {4, 5, 6, 2, 3};
+            //int[] pointsFromPan = { 3, 2, 6, 5, 4 };
+            int[] pointsFromPan = { 4, 5, 9, 13, 17, 21, 22, 23 };
+            Array.Reverse(pointsFromPan);
+
+
+            //ReadPathFile(filePath);
+            //foreach (Point point in initialPoints)
+            //{
+            //    Console.WriteLine(point.xCoordinate);
+            //}
+
+
 
             GeneratePathFile(pointsFromPan);
             Console.ReadKey();
@@ -63,9 +75,20 @@ namespace AGV
                 double k = (y2 - y1) / (x2 - x1);
                 double b = y1 - k * x1;
                 double radian = Math.Atan(k);
-                double yCount = Math.Ceiling((y2 - y1) / OFFSET);
-                double xCount = Math.Ceiling((x2 - x1) / OFFSET);
+                double yCount = Math.Ceiling((Math.Abs(y2 - y1) / OFFSET));
+                double xCount = Math.Ceiling(Math.Abs((x2 - x1) / OFFSET));
+                int yFlag = 1;
+                int xFlag = 1;
 
+                //判断x和y坐标关系
+                if (y2 < y1)
+                {
+                    yFlag = -1;
+                }
+                if (x2 < x1)
+                {
+                    xFlag = -1;
+                }
 
                 //弧度在0~2PI之间
                 if (radian < 0)
@@ -81,14 +104,14 @@ namespace AGV
                 {
                     vFlag = 1;
                 }
-                if ((x2-x1) == 0)
+                if ((x2 - x1) == 0)
                 {
                     for (int j = 0; j < yCount; j++)
                     {
                         Point point = new Point
                         {
                             xCoordinate = x1,
-                            yCoordinate = y1 + OFFSET * j,
+                            yCoordinate = y1 + OFFSET * j * yFlag,
                             angle = -radian + 2 * Math.PI,
                             ySpeed = 0,
                             label = label
@@ -103,19 +126,35 @@ namespace AGV
                     {
                         Point point = new Point
                         {
-                            xCoordinate = x1 + OFFSET * j,
+                            xCoordinate = x1 + OFFSET * j * xFlag,
                             yCoordinate = y1,
                             angle = radian,
                             ySpeed = 0,
                             label = label
                         };
-                        AssignSpeedToXDirection(xCount, j,ref point, vFlag);
+                        AssignSpeedToXDirection(xCount, j, ref point, vFlag);
+                        generatePoints.Add(point);
+                    }
+                }
+                else
+                {
+                    for (int j = 0; j < yCount; j++)
+                    {
+                        Point point = new Point
+                        {
+                            yCoordinate = y1 + OFFSET * j * yFlag,
+                            xCoordinate = (1 / k) * ((y1 + OFFSET * j * yFlag) - b),
+                            angle = radian,
+                            ySpeed = 0,
+                            label = label
+                        };
+                        AssignSpeedToXDirection(yCount, j, ref point, vFlag);
                         generatePoints.Add(point);
                     }
                 }
 
                 //给最后一个点赋值
-                if (i == simplifiedPoints.Count -2)
+                if (i == simplifiedPoints.Count - 2)
                 {
                     Point endPoint = new Point
                     {
@@ -129,7 +168,7 @@ namespace AGV
                     generatePoints.Add(endPoint);
 
                 }
-                label = label + 1;
+                label += 1;
             }
             foreach (Point point in generatePoints)
             {
@@ -137,7 +176,7 @@ namespace AGV
                         , point.xCoordinate, point.yCoordinate, point.angle, point.xSpeed, point.ySpeed, point.label);
             }
 
-            return GeneratePathFile(fileName , generatePoints);
+            return GeneratePathFile(fileName, generatePoints);
         }
 
         private static bool GeneratePathFile(string fileName, List<Point> generatePoints)
@@ -150,8 +189,10 @@ namespace AGV
 
                 foreach (Point point in generatePoints)
                 {
-                    sw.WriteLine("x:{0,-12:F4} y:{1,-12:F4} radian:{2,-12:F4} vx:{3,-12:F4} vy:{4,-12:F4} label:{5,-12:F4}"
-                              , point.xCoordinate, point.yCoordinate, point.angle, point.xSpeed, point.ySpeed, point.label);
+                    //sw.WriteLine("x:{0,-12:F4} y:{1,-12:F4} radian:{2,-12:F4} vx:{3,-12:F4} vy:{4,-12:F4} label:{5,-12:F4}"
+                    //          , point.xCoordinate, point.yCoordinate, point.angle, point.xSpeed, point.ySpeed, point.label);
+                    sw.WriteLine("{0,-12:F4} {1,-12:F4} {2,-12:F4} {3,-12:F4} {4,-12:F4} {5,-12:F4}"
+                                , point.xCoordinate, point.yCoordinate, point.angle, point.xSpeed, point.ySpeed, point.label);
                 }
                 sw.Flush();
                 sw.Close();
@@ -172,7 +213,7 @@ namespace AGV
         /// <param name="yCount"></param>
         /// <param name="j"></param>
         /// <param name="point"></param>
-        private static void AssignSpeedToXDirection(double yCount, int j,ref Point point,int vFlag)
+        private static void AssignSpeedToXDirection(double yCount, int j, ref Point point, int vFlag)
         {
             if (j < 3)
             {
@@ -184,7 +225,7 @@ namespace AGV
             }
             else
             {
-                point.xSpeed = vFlag * (yCount - j ) * 0.1;
+                point.xSpeed = vFlag * (yCount - j) * 0.1;
             }
         }
 
@@ -200,8 +241,8 @@ namespace AGV
             for (int i = 0; i < pointsFromPan.Length - 1; i++)
             {
                 int deta2 = pointsFromPan[i + 1] - pointsFromPan[i];
-
-                if (deta2 == 1)
+                //由于中间两行序号相差为1或-1的点，他们并不在同一竖直线上，也需要加进去
+                if (deta2 == 1 || deta2 == -1)
                 {
                     simplifiedPoints.Add(initialPoints[pointsFromPan[i]]);
                     deta1 = deta2;
@@ -280,7 +321,7 @@ namespace AGV
                     tempPoints[i].xCoordinate = double.Parse(data[i][0]);
                     tempPoints[i].yCoordinate = double.Parse(data[i][1]);
                     initialPoints.Add(tempPoints[i]);
-                }    
+                }
             }
             catch (Exception e)
             {
