@@ -19,24 +19,31 @@ namespace AGV
     public class Program
     {
         private const double OFFSET = 0.05;
-        private const int POINTNUMBER = 48;
+        private const int POINTNUMBER = 60;
         public static List<Point> initialPoints = new List<Point>();
         private const string filePath = @"D:\Documents\Visual Studio 2019\AGV\AGV\Source\coordinate.txt";
 
         public static void Main(string[] args)
         {
-            //int[] pointsFromPan = {4, 5, 6, 2, 3};
-            //int[] pointsFromPan = { 3, 2, 6, 5, 4 };
-            int[] pointsFromPan = { 4, 5, 9, 13, 17, 21, 22, 23 };
+            //int[] pointsFromPan = { 9, 10, 11, 7, 8 };
+
+            int[] pointsFromPan = { 5, 6, 10, 14, 18, 22, 23, 24 };
             Array.Reverse(pointsFromPan);
 
+            //将小潘师兄传过来的从1开始的点，变成从0开始计数的点 。
+            for (int i = 0; i < pointsFromPan.Length; i++)
+            {
+                pointsFromPan[i] -= 1;
+            }
 
-            //ReadPathFile(filePath);
-            //foreach (Point point in initialPoints)
-            //{
-            //    Console.WriteLine(point.xCoordinate);
-            //}
+            //double x1 = 1;
+            //double x2 = 2;
+            //double y1 = 1;
+            //double y2 = 2;
+            //double k = (y1 - y1) / (x1 - x2);
+            //double radian = Math.Atan(k);
 
+            //Console.WriteLine(radian);
 
 
             GeneratePathFile(pointsFromPan);
@@ -99,6 +106,7 @@ namespace AGV
                 if (i == 0)
                 {
                     vFlag = -1;
+                    radian = -radian + 2 * Math.PI;
                 }
                 else
                 {
@@ -112,7 +120,7 @@ namespace AGV
                         {
                             xCoordinate = x1,
                             yCoordinate = y1 + OFFSET * j * yFlag,
-                            angle = -radian + 2 * Math.PI,
+                            angle = radian,
                             ySpeed = 0,
                             label = label
                         };
@@ -122,6 +130,11 @@ namespace AGV
                 }
                 else if ((y2 - y1) == 0)
                 {
+                    //如果两个坐标的y坐标相同，x2<x1时，角度为PI而不是0
+                    if (xFlag == -1)
+                    {
+                        radian = Math.PI;
+                    }
                     for (int j = 0; j < xCount; j++)
                     {
                         Point point = new Point
