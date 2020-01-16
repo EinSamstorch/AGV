@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace AGV
 {
-    //定义点的结构 
+    //定义点的结构
     public struct Point
     {
         public double xCoordinate;
@@ -27,8 +27,10 @@ namespace AGV
         {
             //int[] pointsFromPan = { 9, 10, 11, 7, 8 };
 
-            int[] pointsFromPan = { 5, 6, 10, 14, 18, 22, 23, 24 };
-            Array.Reverse(pointsFromPan);
+            //int[] pointsFromPan = { 5, 6, 10, 14, 18, 22, 23, 24 };
+            int[] pointsFromPan = { 8, 7, 11, 15, 14, 13 };
+
+            //Array.Reverse(pointsFromPan);
 
             //将小潘师兄传过来的从1开始的点，变成从0开始计数的点 。
             for (int i = 0; i < pointsFromPan.Length; i++)
@@ -36,19 +38,8 @@ namespace AGV
                 pointsFromPan[i] -= 1;
             }
 
-            //double x1 = 1;
-            //double x2 = 2;
-            //double y1 = 1;
-            //double y2 = 2;
-            //double k = (y1 - y1) / (x1 - x2);
-            //double radian = Math.Atan(k);
-
-            //Console.WriteLine(radian);
-
-
             GeneratePathFile(pointsFromPan);
             Console.ReadKey();
-
         }
 
         public static bool GeneratePathFile(int[] pointsFromPan)
@@ -58,7 +49,7 @@ namespace AGV
 
         public static bool GeneratePathFile(string fileName, int[] pointsFromPan)
         {
-            List<Point> simplifiedPoints = new List<Point>();//简化之后要走的点        
+            List<Point> simplifiedPoints = new List<Point>();//简化之后要走的点
             List<Point> generatePoints = new List<Point>();//最终生成的点
             int label = 0;
             int vFlag = 1;
@@ -121,10 +112,11 @@ namespace AGV
                             xCoordinate = x1,
                             yCoordinate = y1 + OFFSET * j * yFlag,
                             angle = radian,
+                            xSpeed = 0.2 * vFlag,
                             ySpeed = 0,
                             label = label
                         };
-                        AssignSpeedToXDirection(yCount, j, ref point, vFlag);
+                        //AssignSpeedToXDirection(yCount, j, ref point, vFlag);
                         generatePoints.Add(point);
                     }
                 }
@@ -142,10 +134,11 @@ namespace AGV
                             xCoordinate = x1 + OFFSET * j * xFlag,
                             yCoordinate = y1,
                             angle = radian,
+                            xSpeed = 0.2 * vFlag,
                             ySpeed = 0,
                             label = label
                         };
-                        AssignSpeedToXDirection(xCount, j, ref point, vFlag);
+                        //AssignSpeedToXDirection(xCount, j, ref point, vFlag);
                         generatePoints.Add(point);
                     }
                 }
@@ -158,10 +151,11 @@ namespace AGV
                             yCoordinate = y1 + OFFSET * j * yFlag,
                             xCoordinate = (1 / k) * ((y1 + OFFSET * j * yFlag) - b),
                             angle = radian,
+                            xSpeed = 0.2 * vFlag,
                             ySpeed = 0,
                             label = label
                         };
-                        AssignSpeedToXDirection(yCount, j, ref point, vFlag);
+                        //AssignSpeedToXDirection(yCount, j, ref point, vFlag);
                         generatePoints.Add(point);
                     }
                 }
@@ -179,7 +173,6 @@ namespace AGV
                         label = label
                     };
                     generatePoints.Add(endPoint);
-
                 }
                 label += 1;
             }
@@ -196,14 +189,11 @@ namespace AGV
         {
             try
             {
-                IsTheSameFileExists(fileName);
                 //将数组写入到txt文件中
                 StreamWriter sw = new StreamWriter(fileName, true);
 
                 foreach (Point point in generatePoints)
                 {
-                    //sw.WriteLine("x:{0,-12:F4} y:{1,-12:F4} radian:{2,-12:F4} vx:{3,-12:F4} vy:{4,-12:F4} label:{5,-12:F4}"
-                    //          , point.xCoordinate, point.yCoordinate, point.angle, point.xSpeed, point.ySpeed, point.label);
                     sw.WriteLine("{0,-12:F4} {1,-12:F4} {2,-12:F4} {3,-12:F4} {4,-12:F4} {5,-12:F4}"
                                 , point.xCoordinate, point.yCoordinate, point.angle, point.xSpeed, point.ySpeed, point.label);
                 }
@@ -220,8 +210,7 @@ namespace AGV
         }
 
         /// <summary>
-        /// 给x方向速度赋值，第一个点速度为0，然后速度开始增加到0.3之后保持
-        /// 在接近第二个转折点的时候，速度再慢慢减到0，在转弯处速度为0
+        /// 给x方向速度赋值，第一个点速度为0，然后速度开始增加到0.3之后保持 在接近第二个转折点的时候，速度再慢慢减到0，在转弯处速度为0
         /// </summary>
         /// <param name="yCount"></param>
         /// <param name="j"></param>
@@ -268,33 +257,6 @@ namespace AGV
                 }
             }
             simplifiedPoints.Add(initialPoints[pointsFromPan[^1]]);
-        }
-        /// <summary>
-        /// 用于检验上面那个方法
-        /// </summary>
-        /// <param name="pointsFromPan"></param>
-        /// <param name="simplifiedPoints"></param>
-        public static void SimplifyPoints(int[] pointsFromPan, List<int> simplifiedPoints)
-        {
-            int deta1 = 0; //用于判断前后两个点序号的差值
-
-            for (int i = 0; i < pointsFromPan.Length - 1; i++)
-            {
-                int deta2 = pointsFromPan[i + 1] - pointsFromPan[i];
-
-                if (deta2 == 1)
-                {
-                    simplifiedPoints.Add(pointsFromPan[i]);
-                    deta1 = deta2;
-                    continue;
-                }
-                if (deta2 != deta1)
-                {
-                    simplifiedPoints.Add(pointsFromPan[i]);
-                    deta1 = deta2;
-                }
-            }
-            simplifiedPoints.Add(pointsFromPan[^1]);
         }
 
 
@@ -345,42 +307,5 @@ namespace AGV
             return true;
         }
 
-        private static bool GeneratePathFile(string fileName, string[,] generateCoordinates)
-        {
-            try
-            {
-                IsTheSameFileExists(fileName);
-                //将数组写入到txt文件中
-                string sign = "\t";//元素之间分隔符号，此处设置为tab
-                StreamWriter sw = new StreamWriter(fileName, true);
-
-                for (int i = 0; i < generateCoordinates.GetLength(0); i++)
-                {
-                    for (int j = 0; j < generateCoordinates.GetLength(1); j++)
-                    {
-                        sw.Write(generateCoordinates[i, j] + sign);
-                    }
-                    sw.WriteLine();
-                }
-                sw.Flush();
-                sw.Close();
-                sw.Dispose();
-                return true;
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e.StackTrace);
-                return false;
-            }
-        }
-
-        private static void IsTheSameFileExists(string fileName)
-        {
-            //监测是否有同名文件，有的话则删除
-            if (File.Exists(fileName))
-            {
-                File.Delete(fileName);
-            }
-        }
     }
 }

@@ -19,20 +19,5 @@ namespace AGV.Tests
 
         }
 
-        [TestMethod()]
-        public void SimplifyPointsTest()
-        {
-            //int[] pointsFromPan = { 4, 5, 6, 2, 3 };
-            //int[] pointsFromPan = { 4, 5, 9, 13, 17, 18, 19 };
-            int[] pointsFromPan = { 8, 9, 10, 14, 18, 19};
-            List<int> simplifiedPoints = new List<int>();
-
-            Program.SimplifyPoints(pointsFromPan, simplifiedPoints);
-
-            foreach (var item in simplifiedPoints)
-            {
-                Console.WriteLine(item);
-            }
-        }
     }
 }
