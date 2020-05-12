@@ -28,7 +28,9 @@ namespace AGV
             //int[] pointsFromPan = { 9, 10, 11, 7, 8 };
 
             //int[] pointsFromPan = { 5, 6, 10, 14, 18, 22, 23, 24 };
-            int[] pointsFromPan = { 8, 7, 11, 15, 14, 13 };
+            //int[] pointsFromPan = { 9, 10, 14, 18, 17 };
+            int[] pointsFromPan = { 2, 6, 10, 14, 13 };
+
 
             //Array.Reverse(pointsFromPan);
 
@@ -39,7 +41,36 @@ namespace AGV
             }
 
             GeneratePathFile(pointsFromPan);
+            //Test();
             Console.ReadKey();
+        }
+
+        public static void Test()
+        {
+            double x1 = 0;
+            double y1 = 0;
+            double x2 = 0;
+            double y2 = 1;
+            double k = (y2 - y1) / (x2 - x1);
+            double radian = Math.Atan(k);
+            // 四个象限角度的转化
+            if (x2 >= x1 && y2 > y1)
+            {
+                radian = radian;
+            }
+            else if (x2 < x1 && y2 >= y1)
+            {
+                radian = radian + Math.PI;
+            }
+            else if (x2 < x1 && y2 < y1)
+            {
+                radian = radian + Math.PI;
+            }
+            else
+            {
+                radian = radian + 2 * Math.PI;
+            }
+            Console.WriteLine(radian);
         }
 
         public static bool GeneratePathFile(int[] pointsFromPan)
@@ -60,6 +91,7 @@ namespace AGV
                 return false;
             }
 
+            // 修改起点位置
             ModifyThePositionOfStartingPoint(pointsFromPan);
 
             SimplifyPoints(pointsFromPan, simplifiedPoints);
@@ -75,24 +107,28 @@ namespace AGV
                 double radian = Math.Atan(k);
                 double yCount = Math.Ceiling((Math.Abs(y2 - y1) / OFFSET));
                 double xCount = Math.Ceiling(Math.Abs((x2 - x1) / OFFSET));
-                int yFlag = 1;
-                int xFlag = 1;
 
-                //判断x和y坐标关系
-                if (y2 < y1)
+                int xFlag = (x2 < x1) ? -1 : 1;
+                int yFlag = (y2 < y1) ? -1 : 1;
+
+                // 四个象限角度的转化
+                if (x2 >= x1 && y2 > y1)
                 {
-                    yFlag = -1;
+                    radian = radian;
                 }
-                if (x2 < x1)
+                else if (x2 < x1 && y2 >= y1)
                 {
-                    xFlag = -1;
+                    radian = radian + Math.PI;
+                }
+                else if (x2 < x1 && y2 < y1)
+                {
+                    radian = radian + Math.PI;
+                }
+                else
+                {
+                    radian = radian + 2 * Math.PI;
                 }
 
-                //弧度在0~2PI之间
-                if (radian < 0)
-                {
-                    radian += 2 * Math.PI;
-                }
                 //第一个点一定是倒车出来的
                 if (i == 0)
                 {
@@ -103,6 +139,7 @@ namespace AGV
                 {
                     vFlag = 1;
                 }
+                // x坐标相同
                 if ((x2 - x1) == 0)
                 {
                     for (int j = 0; j < yCount; j++)
@@ -120,6 +157,7 @@ namespace AGV
                         generatePoints.Add(point);
                     }
                 }
+                // y坐标相同
                 else if ((y2 - y1) == 0)
                 {
                     //如果两个坐标的y坐标相同，x2<x1时，角度为PI而不是0
@@ -200,6 +238,8 @@ namespace AGV
                 sw.Flush();
                 sw.Close();
                 sw.Dispose();
+
+
                 return true;
             }
             catch (Exception e)
@@ -240,8 +280,23 @@ namespace AGV
         {
             int deta1 = 0; //用于判断前后两个点序号的差值
 
+
             for (int i = 0; i < pointsFromPan.Length - 1; i++)
             {
+                
+                // 如果起点或终点是仓库
+                if (pointsFromPan[0] == 1 || pointsFromPan[0] == 2 || pointsFromPan[^1] == 1 || pointsFromPan[^1] == 2)
+                {
+                    simplifiedPoints.Add(initialPoints[pointsFromPan[0]]);
+                    Point midPoint = new Point
+                    {
+                        xCoordinate = initialPoints[pointsFromPan[^1]].xCoordinate,
+                        yCoordinate = initialPoints[pointsFromPan[0]].yCoordinate
+                    };
+                    simplifiedPoints.Add(midPoint);
+                    break;
+                }
+                
                 int deta2 = pointsFromPan[i + 1] - pointsFromPan[i];
                 //由于中间两行序号相差为1或-1的点，他们并不在同一竖直线上，也需要加进去
                 if (deta2 == 1 || deta2 == -1)
@@ -273,7 +328,7 @@ namespace AGV
                 initialPoints[points[0]] = newPoint;
             }
             //如果起点在最上面一行，则起点的y坐标加上0.3米
-            if (points[0] % 4 == 3)
+            else if (points[0] % 4 == 3)
             {
                 Point newPoint = new Point
                 {
@@ -282,8 +337,18 @@ namespace AGV
                 };
                 initialPoints[points[0]] = newPoint;
             }
+            //如果起点在仓库，则x坐标减去0.3m
+            else if (points[0] == 1 || points[0] == 2){
+                Point newPoint = new Point
+                {
+                    xCoordinate = initialPoints[points[0]].xCoordinate - 0.3,
+                    yCoordinate = initialPoints[points[0]].yCoordinate
+                };
+                initialPoints[points[0]] = newPoint;
+            }
         }
 
+        // 获取初始点位
         public static bool ReadPathFile(string filePath)
         {
             string[][] data = null;
