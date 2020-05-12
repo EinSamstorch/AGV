@@ -40,37 +40,11 @@ namespace AGV
                 pointsFromPan[i] -= 1;
             }
 
-            GeneratePathFile(pointsFromPan);
-            //Test();
+            //GeneratePathFile(pointsFromPan);
+            double x = -1.6;
+            double y = 0;
+            SelectShortestPoint.GetPoint(x, y);
             Console.ReadKey();
-        }
-
-        public static void Test()
-        {
-            double x1 = 0;
-            double y1 = 0;
-            double x2 = 0;
-            double y2 = 1;
-            double k = (y2 - y1) / (x2 - x1);
-            double radian = Math.Atan(k);
-            // 四个象限角度的转化
-            if (x2 >= x1 && y2 > y1)
-            {
-                radian = radian;
-            }
-            else if (x2 < x1 && y2 >= y1)
-            {
-                radian = radian + Math.PI;
-            }
-            else if (x2 < x1 && y2 < y1)
-            {
-                radian = radian + Math.PI;
-            }
-            else
-            {
-                radian = radian + 2 * Math.PI;
-            }
-            Console.WriteLine(radian);
         }
 
         public static bool GeneratePathFile(int[] pointsFromPan)
