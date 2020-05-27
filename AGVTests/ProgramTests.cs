@@ -15,7 +15,7 @@ namespace AGV.Tests
         {
             string filePath = @"D:\Documents\Visual Studio 2019\AGV\AGV\Source\test.txt";
 
-            Assert.IsTrue(Program.ReadPathFile(filePath));
+            Assert.IsTrue(Path.ReadPathFile(filePath));
 
         }
 

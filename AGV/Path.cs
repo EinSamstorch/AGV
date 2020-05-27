@@ -16,7 +16,7 @@ namespace AGV
         public int label;//用来区分多个点之间的路径段，拐一次弯加1
     }
 
-    public class Program
+    public class Path
     {
         private const double OFFSET = 0.05;
         private const double SPEED = 0.3;
@@ -24,20 +24,39 @@ namespace AGV
         public static List<Point> initialPoints = new List<Point>();
         private const string filePath = @"D:\Documents\Visual Studio 2019\AGV\AGV\Source\coordinate.txt";
 
+        //public Path()
+        //{
+            
+        //}
+
         public static void Main(string[] args)
         {
+            //ReadPathFile(filePath);
             //int[] pointsFromPan = { 9, 10, 11, 7, 8 };
 
             //int[] pointsFromPan = { 5, 6, 10, 14, 18, 22, 23, 24 };
             //int[] pointsFromPan = { 9, 10, 14, 18, 17 };
             //int[] pointsFromPan = { 3, 7, 11, 14, 15, 14,13 };
             //int[] pointsFromPan = { 8, 7, 11, 15, 14, 13 };
-            //int[] pointsFromPan = { 13, 14, 10, 6, 2};
+            int[] pointsFromPan = { 13, 14, 10, 6, 2 };
             //int[] pointsFromPan = { 13, 14, 18, 22, 26, 30, 31, 32 };
             //int[] pointsFromPan = { 3, 7, 11, 15, 19, 18, 17 };
             //int[] pointsFromPan = { 57,58,59,55,51,47,43,39,35,31,27,23,19,15,11,7,3 };
             //int[] pointsFromPan = { 6, 7, 11, 15, 11, 10 };
-            int[] pointsFromPan = { 2, 6, 7, 3 };
+            //int[] pointsFromPan = { 2, 6, 7, 3 };
+            string[] sNums;
+            int[] iNums;
+            while (true)
+            {
+               sNums = Console.ReadLine().Split(",");
+               iNums = Array.ConvertAll<string, int>(sNums, int.Parse);
+               GeneratePathFile(iNums);
+            }
+            
+               
+
+
+            
 
 
 
@@ -62,10 +81,6 @@ namespace AGV
             Console.ReadKey();
         }
 
-        public static void Test(int[] pointsFromPan)
-        {
-             
-        }
 
         public static bool GeneratePathFile(int[] pointsFromPan)
         {
@@ -84,6 +99,7 @@ namespace AGV
             {
                 return false;
             }
+            
 
             // 修改起点位置
             ModifyThePositionOfStartingPoint(pointsFromPan);
@@ -214,7 +230,8 @@ namespace AGV
                 Console.WriteLine("x:{0,-12:F4} y:{1,-12:F4} radian:{2,-12:F4} vx:{3,-12:F4} vy:{4,-12:F4} label:{5,-12:F4}"
                         , point.xCoordinate, point.yCoordinate, point.angle, point.xSpeed, point.ySpeed, point.label);
             }
-
+            // 由于从坐标文件中读取的坐标数据其实已经被改变了，因此需要清空后，方便下一次重新写入。
+            initialPoints.Clear();
             return GeneratePathFile(fileName, generatePoints);
         }
 

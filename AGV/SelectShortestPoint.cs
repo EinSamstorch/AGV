@@ -16,8 +16,8 @@ namespace AGV
             double minDistance = Double.MaxValue;
             
             
-            Program.ReadPathFile(filePath);
-            foreach (Point point1 in Program.initialPoints)
+            Path.ReadPathFile(filePath);
+            foreach (Point point1 in Path.initialPoints)
             {
                 double x2 = point1.xCoordinate;
                 double y2 = point1.yCoordinate;
