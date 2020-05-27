@@ -19,6 +19,7 @@ namespace AGV
     public class Program
     {
         private const double OFFSET = 0.05;
+        private const double SPEED = 0.3;
         private const int POINTNUMBER = 60;
         public static List<Point> initialPoints = new List<Point>();
         private const string filePath = @"D:\Documents\Visual Studio 2019\AGV\AGV\Source\coordinate.txt";
@@ -29,7 +30,21 @@ namespace AGV
 
             //int[] pointsFromPan = { 5, 6, 10, 14, 18, 22, 23, 24 };
             //int[] pointsFromPan = { 9, 10, 14, 18, 17 };
-            int[] pointsFromPan = { 2, 6, 10, 14, 13 };
+            //int[] pointsFromPan = { 3, 7, 11, 14, 15, 14,13 };
+            //int[] pointsFromPan = { 8, 7, 11, 15, 14, 13 };
+            //int[] pointsFromPan = { 13, 14, 10, 6, 2};
+            //int[] pointsFromPan = { 13, 14, 18, 22, 26, 30, 31, 32 };
+            //int[] pointsFromPan = { 3, 7, 11, 15, 19, 18, 17 };
+            //int[] pointsFromPan = { 57,58,59,55,51,47,43,39,35,31,27,23,19,15,11,7,3 };
+            //int[] pointsFromPan = { 6, 7, 11, 15, 11, 10 };
+            int[] pointsFromPan = { 2, 6, 7, 3 };
+
+
+
+
+
+
+
 
 
             //Array.Reverse(pointsFromPan);
@@ -40,11 +55,16 @@ namespace AGV
                 pointsFromPan[i] -= 1;
             }
 
-            //GeneratePathFile(pointsFromPan);
+            GeneratePathFile(pointsFromPan);
             double x = -1.6;
             double y = 0;
-            SelectShortestPoint.GetPoint(x, y);
+            //SelectShortestPoint.GetPoint(x, y);
             Console.ReadKey();
+        }
+
+        public static void Test(int[] pointsFromPan)
+        {
+             
         }
 
         public static bool GeneratePathFile(int[] pointsFromPan)
@@ -56,7 +76,7 @@ namespace AGV
         {
             List<Point> simplifiedPoints = new List<Point>();//简化之后要走的点
             List<Point> generatePoints = new List<Point>();//最终生成的点
-            int label = 0;
+            int label = -1;
             int vFlag = 1;
 
             //如果读取文件失败则返回false
@@ -107,7 +127,8 @@ namespace AGV
                 if (i == 0)
                 {
                     vFlag = -1;
-                    radian = -radian + 2 * Math.PI;
+                // 如果初始算出的路径角度在0~pi，则车头的方向是radian + pi，如果是pi~2pi，则车头方向是radian - Pi
+                    radian = (radian <= Math.PI) ? (radian + Math.PI) : (radian - Math.PI);
                 }
                 else
                 {
@@ -123,7 +144,7 @@ namespace AGV
                             xCoordinate = x1,
                             yCoordinate = y1 + OFFSET * j * yFlag,
                             angle = radian,
-                            xSpeed = 0.2 * vFlag,
+                            xSpeed = SPEED * vFlag,
                             ySpeed = 0,
                             label = label
                         };
@@ -146,7 +167,7 @@ namespace AGV
                             xCoordinate = x1 + OFFSET * j * xFlag,
                             yCoordinate = y1,
                             angle = radian,
-                            xSpeed = 0.2 * vFlag,
+                            xSpeed = SPEED * vFlag,
                             ySpeed = 0,
                             label = label
                         };
@@ -163,7 +184,7 @@ namespace AGV
                             yCoordinate = y1 + OFFSET * j * yFlag,
                             xCoordinate = (1 / k) * ((y1 + OFFSET * j * yFlag) - b),
                             angle = radian,
-                            xSpeed = 0.2 * vFlag,
+                            xSpeed = SPEED * vFlag,
                             ySpeed = 0,
                             label = label
                         };
@@ -180,13 +201,13 @@ namespace AGV
                         xCoordinate = x2,
                         yCoordinate = y2,
                         angle = radian,
-                        xSpeed = 0,
+                        xSpeed = SPEED,
                         ySpeed = 0,
                         label = label
                     };
                     generatePoints.Add(endPoint);
                 }
-                label += 1;
+                label -= 1;
             }
             foreach (Point point in generatePoints)
             {
@@ -202,7 +223,8 @@ namespace AGV
             try
             {
                 //将数组写入到txt文件中
-                StreamWriter sw = new StreamWriter(fileName, true);
+                //FileStream fs = new FileStream(fileName, FileMode.Create, FileAccess.Write);                 
+                StreamWriter sw = new StreamWriter(fileName, false);
 
                 foreach (Point point in generatePoints)
                 {
@@ -223,27 +245,6 @@ namespace AGV
             }
         }
 
-        /// <summary>
-        /// 给x方向速度赋值，第一个点速度为0，然后速度开始增加到0.3之后保持 在接近第二个转折点的时候，速度再慢慢减到0，在转弯处速度为0
-        /// </summary>
-        /// <param name="yCount"></param>
-        /// <param name="j"></param>
-        /// <param name="point"></param>
-        private static void AssignSpeedToXDirection(double yCount, int j, ref Point point, int vFlag)
-        {
-            if (j < 3)
-            {
-                point.xSpeed = vFlag * j * 0.1;
-            }
-            else if (yCount - j > 3)
-            {
-                point.xSpeed = vFlag * 0.3;
-            }
-            else
-            {
-                point.xSpeed = vFlag * (yCount - j) * 0.1;
-            }
-        }
 
         /// <summary>
         /// 将同一条直线上的几个点合并成两个点，方便后面进行加减速控制。
@@ -257,9 +258,27 @@ namespace AGV
 
             for (int i = 0; i < pointsFromPan.Length - 1; i++)
             {
-                
-                // 如果起点或终点是仓库
-                if (pointsFromPan[0] == 1 || pointsFromPan[0] == 2 || pointsFromPan[^1] == 1 || pointsFromPan[^1] == 2)
+                // 小车在两个出库口和入库口之间运动
+                if ((pointsFromPan[0] == 1 && pointsFromPan[^1] == 2 )|| (pointsFromPan[0] == 2 && pointsFromPan[^1] == 1))
+                {
+                    simplifiedPoints.Add(initialPoints[pointsFromPan[0]]);
+                    Point midPoint1 = new Point
+                    {
+                        xCoordinate = initialPoints[pointsFromPan[1]].xCoordinate,
+                        yCoordinate = initialPoints[pointsFromPan[0]].yCoordinate
+                    };
+                    Point midPoint2 = new Point
+                    {
+                        xCoordinate = initialPoints[pointsFromPan[1]].xCoordinate,
+                        yCoordinate = initialPoints[pointsFromPan[pointsFromPan.Length - 1]].yCoordinate
+                    };
+                    simplifiedPoints.Add(midPoint1);
+                    simplifiedPoints.Add(midPoint2);
+                    break;
+                }
+
+                // 如果起点是仓库
+                if (pointsFromPan[0] == 1 || pointsFromPan[0] == 2)
                 {
                     simplifiedPoints.Add(initialPoints[pointsFromPan[0]]);
                     Point midPoint = new Point
@@ -270,7 +289,20 @@ namespace AGV
                     simplifiedPoints.Add(midPoint);
                     break;
                 }
-                
+
+                // 如果终点是仓库
+                if (pointsFromPan[^1] == 1 || pointsFromPan[^1] == 2)
+                {
+                    simplifiedPoints.Add(initialPoints[pointsFromPan[0]]);
+                    Point midPoint = new Point
+                    {
+                        xCoordinate = initialPoints[pointsFromPan[0]].xCoordinate,
+                        yCoordinate = initialPoints[pointsFromPan[^1]].yCoordinate
+                    };
+                    simplifiedPoints.Add(midPoint);
+                    break;
+                }
+
                 int deta2 = pointsFromPan[i + 1] - pointsFromPan[i];
                 //由于中间两行序号相差为1或-1的点，他们并不在同一竖直线上，也需要加进去
                 if (deta2 == 1 || deta2 == -1)

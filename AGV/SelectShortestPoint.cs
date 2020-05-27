@@ -6,12 +6,15 @@ namespace AGV
 {
     class SelectShortestPoint
     {
+
+        
         private const string filePath = @"D:\Documents\Visual Studio 2019\AGV\AGV\Source\coordinate.txt";
-        public static Point GetPoint(double x, double y)
+        public static int GetPoint(double x, double y)
         {
-            Point point = new Point();
+            int point = 0;
             Dictionary<Point, double> dic = new Dictionary<Point, double>();
             double minDistance = Double.MaxValue;
+            
             
             Program.ReadPathFile(filePath);
             foreach (Point point1 in Program.initialPoints)
@@ -26,15 +29,20 @@ namespace AGV
                 dic.Add(point1, distance);
             }
 
-            foreach (KeyValuePair<Point, double> kvp in dic)
+            Dictionary<Point, double>.Enumerator en = dic.GetEnumerator();
+            for (int i = 0; i < dic.Count; i++)
             {
-                if (kvp.Value == minDistance)
+                if (en.MoveNext())
                 {
-                    point = kvp.Key;
+                    double value = en.Current.Value;
+                    if (value == minDistance)
+                    {
+                        point = i;
+                        break;
+                    }
                 }
             }
-            Console.WriteLine("x:{0,-8:F4},y:{1,-8:F4}", point.xCoordinate, point.yCoordinate);
-            return point;
+            return (point + 1);
         }
 
     }
